@@ -73,10 +73,9 @@ export async function generarLlibre(seleccio, bancs) {
   const ubicacions = BANCS.banco_ubicacion || [{ciutat:'Girona', subtubs:[]}];
 
   const persBanc = seleccio.personatgeId
- ? personatges.find(p => p.id === seleccio.personatgeId)
+? personatges.find(p => p.id === seleccio.personatgeId)
     : personatges.find(p => p.genero === seleccio.genere) || personatges[0];
 
-  // Ciutat principal amb fallback
   const ciutatPrincipal = seleccio.ciutatPrincipal || 'Girona';
   const ciutatPrincipal2 = seleccio.ciutatPrincipal2 || null;
   const ubi = ubicacions.find(u => u.ciutat === ciutatPrincipal) || ubicacions[0];
@@ -111,10 +110,6 @@ export async function generarLlibre(seleccio, bancs) {
     const beatNom = beats[(numCap - 1) % beats.length];
     const escenes = [];
 
-    // ROTACIÓ CIUTATS V9.4:
-    // Cap 1-6: Ciutat Principal
-    // Cap 7-12: Ciutat Principal 2 si existeix
-    // Cap 13+: Ciutats Extra en rotació
     let ciutatActual = configBase.ciutat;
     let subtubsActuals = configBase.subtubsActius;
 
@@ -128,10 +123,9 @@ export async function generarLlibre(seleccio, bancs) {
     }
 
     for (let numEsc = 1; numEsc <= config.escenesPerCap; numEsc++) {
-      // Triar subtub aleatori si n'hi ha
       const subtub = pickSubtub(subtubsActuals, hist);
       const configEscena = {
-     ...configBase,
+    ...configBase,
         ciutat: ciutatActual,
         subtubActual: subtub? subtub.nom : null
       };
@@ -150,7 +144,6 @@ export async function generarLlibre(seleccio, bancs) {
       escenes.push({ titol: `Escena ${numEsc}`, text: resultat.text });
     }
 
-    // Tancament de beat
     escenes.push({
       titol: '',
       text: `<em>${beatNom} s'acabava amb ${configBase.nom} mirant cap a ${ciutatActual}</em>`
@@ -189,7 +182,7 @@ export async function generarLectura(seleccio, bancs, numEscenes = 1) {
   const ubicacions = BANCS.banco_ubicacion || [{ciutat:'Girona', subtubs:[]}];
 
   const persBanc = seleccio.personatgeId
- ? personatges.find(p => p.id === seleccio.personatgeId)
+? personatges.find(p => p.id === seleccio.personatgeId)
     : personatges.find(p => p.genero === seleccio.genere) || personatges[0];
 
   const ciutatPrincipal = seleccio.ciutatPrincipal || 'Girona';
@@ -225,7 +218,7 @@ export async function generarLectura(seleccio, bancs, numEscenes = 1) {
 
     const subtub = pickSubtub(configBase.subtubsActius, hist);
     const configEscena = {
-   ...configBase,
+  ...configBase,
       subtubActual: subtub? subtub.nom : null
     };
 
