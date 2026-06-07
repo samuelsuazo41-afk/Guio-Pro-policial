@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0d0f12">
 <title>Guio-Pro-Policial</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 <style>
 :root{--bg:#0d0f12;--bg-panel:#1a1d22;--text:#e6e7e9;--text-muted:#8a8f96;--accent:#00bcd4;--border:#2a2e33;--btn:#262a31}
 body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
@@ -39,12 +39,15 @@ input{width:100%;padding:12px;border:1px solid var(--border);background:var(--bg
 .toc-resumen{font-size:13px;color:var(--text-muted);padding:4px 0 0 20px;line-height:1.4}
 .toc-escenes{font-size:12px;color:var(--accent);padding:2px 0 0 20px}
 textarea{font-family:inherit}
+.subtub-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;margin-bottom:6px}
+.subtub-item input{width:18px;height:18px;margin:0}
+.subtub-item label{flex:1;font-size:14px}
 </style>
 </head>
 <body>
 <header>
-  <h1>Lec-Flix</h1>
-  <p>Guio-Pro-Policial</p>
+  <h1>Guio-Pro-Policial</h1>
+  <p>Generador Multi-Ritme</p>
 </header>
 
 <main>
@@ -105,8 +108,8 @@ textarea{font-family:inherit}
     <div class="screen-content">
       <button class="opt-btn" onclick="selectCiutatPrincipal()">Marcar com a Ciutat Principal</button>
       <button class="opt-btn" id="btn-toggle-extra" onclick="toggleCiutatExtra()">Afegir a Ciutats Extra</button>
-      <h4 style="color:var(--text-muted);margin:16px 0 8px">Subtubs</h4>
-      <div id="subtubs-list"><p style="color:var(--text-muted);font-size:13px">Pendents del nou fitxer d'ubicació</p></div>
+      <h4 style="color:var(--text-muted);margin:16px 0 8px">Llocs secundaris - marca 2-3</h4>
+      <div id="subtubs-list"></div>
     </div>
   </section>
 
@@ -177,19 +180,19 @@ try {
   console.warn('Fallback bancs', e);
   BANCS = {
     banco_ubicacion: [
-      {ciutat:'Barcelona', banco_variables:{so:['silenci'], olor:['humitat']}},
-      {ciutat:'Girona', banco_variables:{so:['vent'], olor:['pi']}},
-      {ciutat:'Tarragona', banco_variables:{so:['mar'], olor:['sal']}}
+      {ciutat:'Barcelona', subtubs:[{nom:'Gràcia'},{nom:'Barceloneta'},{nom:'Tibidabo'}]},
+      {ciutat:'Girona', subtubs:[{nom:'Pont de Pedra'},{nom:'Catedral'}]},
+      {ciutat:'Tarragona', subtubs:[{nom:'Amfiteatre'}]}
     ],
-    banco_lectura: [{tipus:'obertura', genero:'policiac', texto_base:'{nom} va obrir els ulls a {ciutat}.'}],
+    banco_lectura: [{tipus:'obertura', genero:'policiac', texto_base:'{nom} va obrir els ulls a {subtub||ciutat}.'}],
     banco_personatge: [{id:'p1', genero:'policiac', banco_variables:{nom:['Àlex'], tic:['somriu']}}],
     banco_escenarios: [{nom:'Carrer', ciutat:'Barcelona', genero:['policiac']}],
-    banco_ecenes: [{genero:'policiac', texto_base:'{nom} caminava per {ciutat} amb {tic}.'}],
+    banco_ecenes: [{genero:'policiac', texto_base:'{nom} caminava per {subtub||ciutat} amb {tic}.'}],
     banco_olors:[], banco_sons:[], banco_emocions:[]
   };
 }
 
-// 2. Estat global
+// 2. Estat global amb subtubs
 window.seleccio = {
   titol:'',
   genere:'policiac',
@@ -199,6 +202,8 @@ window.seleccio = {
   pov:'1 Protagonista',
   ciutatPrincipal:null,
   ciutatsExtra:[],
+  subtubsPrincipal:[],
+  subtubsExtra:{},
   sinopsis:'',
   personatgeId:null,
   mon:null,
@@ -240,11 +245,16 @@ window.saveSinopsis = ()=>{
   closeScreen();
 }
 
-// 6. Ubicació 2 nivells
+// 6. Ubicació 2 nivells + Subtubs
 function renderUbicacioList(){
   const list = document.getElementById('ubicacio-list');
   const ciutats = BANCS.banco_ubicacion || [];
-  list.innerHTML = ciutats.map(c=>`<button class="opt-btn" onclick="openCiutatDetall('${c.ciutat}')">${c.ciutat}</button>`).join('');
+  list.innerHTML = ciutats.map(c=>{
+    const nSubtubs = seleccio.subtubsPrincipal.length || seleccio.subtubsExtra[c.ciutat]?.length || 0;
+    const label = c.ciutat === seleccio.ciutatPrincipal? `${c.ciutat} (Principal)` : 
+                  seleccio.ciutatsExtra.includes(c.ciutat)? `${c.ciutat} (Extra)` : c.ciutat;
+    return `<button class="opt-btn" onclick="openCiutatDetall('${c.ciutat}')">${label} ${nSubtubs?`(${nSubtubs} llocs)` : ''}</button>`;
+  }).join('');
 }
 
 window.openCiutatDetall = ciutat=>{
@@ -252,20 +262,61 @@ window.openCiutatDetall = ciutat=>{
   document.getElementById('ciutat-title').textContent = ciutat;
   const isExtra = seleccio.ciutatsExtra.includes(ciutat);
   document.getElementById('btn-toggle-extra').textContent = isExtra? 'Eliminar de Ciutats Extra' : 'Afegir a Ciutats Extra';
+  renderSubtubsList(ciutat);
   openScreen('ubicacio-detall');
+}
+
+function renderSubtubsList(ciutat){
+  const container = document.getElementById('subtubs-list');
+  const ubi = BANCS.banco_ubicacion.find(u => u.ciutat === ciutat);
+  if(!ubi ||!ubi.subtubs || ubi.subtubs.length === 0){
+    container.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Sense llocs secundaris per ${ciutat}</p>`;
+    return;
+  }
+  
+  const seleccionats = ciutat === seleccio.ciutatPrincipal? seleccio.subtubsPrincipal : (seleccio.subtubsExtra[ciutat] || []);
+  
+  container.innerHTML = ubi.subtubs.map(s=>{
+    const checked = seleccionats.includes(s.nom)? 'checked' : '';
+    return `<div class="subtub-item">
+      <input type="checkbox" id="sub-${s.nom}" ${checked} onchange="toggleSubtub('${ciutat}','${s.nom}')">
+      <label for="sub-${s.nom}">${s.nom}</label>
+    </div>`;
+  }).join('');
+}
+
+window.toggleSubtub = (ciutat, subtub)=>{
+  if(ciutat === seleccio.ciutatPrincipal){
+    const idx = seleccio.subtubsPrincipal.indexOf(subtub);
+    if(idx > -1) seleccio.subtubsPrincipal.splice(idx,1);
+    else seleccio.subtubsPrincipal.push(subtub);
+  } else {
+    if(!seleccio.subtubsExtra[ciutat]) seleccio.subtubsExtra[ciutat] = [];
+    const idx = seleccio.subtubsExtra[ciutat].indexOf(subtub);
+    if(idx > -1) seleccio.subtubsExtra[ciutat].splice(idx,1);
+    else seleccio.subtubsExtra[ciutat].push(subtub);
+  }
+  renderUbicacioList();
 }
 
 window.selectCiutatPrincipal = ()=>{
   seleccio.ciutatPrincipal = ciutatTemp;
   seleccio.mon = ciutatTemp;
   document.getElementById('ubicacio-label').textContent = ciutatTemp;
+  renderUbicacioList();
   closeScreen('ubicacio');
 }
 
 window.toggleCiutatExtra = ()=>{
   const idx = seleccio.ciutatsExtra.indexOf(ciutatTemp);
-  if(idx>-1){seleccio.ciutatsExtra.splice(idx,1)}else{seleccio.ciutatsExtra.push(ciutatTemp)}
+  if(idx>-1){
+    seleccio.ciutatsExtra.splice(idx,1);
+    delete seleccio.subtubsExtra[ciutatTemp];
+  } else {
+    seleccio.ciutatsExtra.push(ciutatTemp);
+  }
   document.getElementById('btn-toggle-extra').textContent = seleccio.ciutatsExtra.includes(ciutatTemp)? 'Eliminar de Ciutats Extra' : 'Afegir a Ciutats Extra';
+  renderUbicacioList();
 }
 
 // 7. Botó Generar
@@ -340,4 +391,4 @@ document.getElementById('btn-toc-toggle').onclick = ()=>{
 if('serviceWorker' in navigator) navigator.serviceWorker.register(baseURL+'sw.js');
 </script>
 </body>
-        </html>
+</html>
