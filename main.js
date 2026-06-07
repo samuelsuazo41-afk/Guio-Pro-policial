@@ -1,4 +1,4 @@
-// js/main.js - Guio-Pro-Policial V9.5
+// js/main.js - Guio-Pro-Policial V9.6
 // Repo: Guio-Pro-policial
 // Cache busting amb?v=Date.now() per evitar servei antic
 
@@ -19,7 +19,7 @@ async function cargarMotor() {
     alert('ERROR: window.generarEscena no és funció');
     return false;
   }
-  console.log('✅ Motor V9.5 carregat');
+  console.log('✅ Motor V9.6 carregat');
   return true;
 }
 await cargarMotor();
@@ -62,7 +62,7 @@ function pickSubtub(subtubs, hist) {
   return pool[idx];
 }
 
-// GENERADOR DE LLIBRE COMPLET V9.5
+// GENERADOR DE LLIBRE COMPLET V9.6
 export async function generarLlibre(seleccio, bancs) {
   if (!generarEscenaMotor) throw new Error('Motor no carregat');
 
@@ -125,7 +125,7 @@ export async function generarLlibre(seleccio, bancs) {
     for (let numEsc = 1; numEsc <= config.escenesPerCap; numEsc++) {
       const subtub = pickSubtub(subtubsActuals, hist);
       const configEscena = {
-   ...configBase,
+  ...configBase,
         ciutat: ciutatActual,
         subtubActual: subtub? subtub.nom : null
       };
@@ -218,7 +218,7 @@ export async function generarLectura(seleccio, bancs, numEscenes = 1) {
 
     const subtub = pickSubtub(configBase.subtubsActius, hist);
     const configEscena = {
- ...configBase,
+...configBase,
       subtubActual: subtub? subtub.nom : null
     };
 
