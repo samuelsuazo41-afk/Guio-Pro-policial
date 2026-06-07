@@ -1,4 +1,4 @@
-// js/main.js - Guio-Pro-Policial V9.2
+// js/main.js - Guio-Pro-Policial V9.4
 // Repo: Guio-Pro-policial
 // Cache busting amb?v=Date.now() per evitar servei antic
 
@@ -19,7 +19,7 @@ async function cargarMotor() {
     alert('ERROR: window.generarEscena no és funció');
     return false;
   }
-  console.log('✅ Motor V9.2 carregat');
+  console.log('✅ Motor V9.4 carregat');
   return true;
 }
 await cargarMotor();
@@ -62,7 +62,7 @@ function pickSubtub(subtubs, hist) {
   return pool[idx];
 }
 
-// GENERADOR DE LLIBRE COMPLET V9.2
+// GENERADOR DE LLIBRE COMPLET V9.4
 export async function generarLlibre(seleccio, bancs) {
   if (!generarEscenaMotor) throw new Error('Motor no carregat');
 
@@ -73,7 +73,7 @@ export async function generarLlibre(seleccio, bancs) {
   const ubicacions = BANCS.banco_ubicacion || [{ciutat:'Girona', subtubs:[]}];
 
   const persBanc = seleccio.personatgeId
-  ? personatges.find(p => p.id === seleccio.personatgeId)
+ ? personatges.find(p => p.id === seleccio.personatgeId)
     : personatges.find(p => p.genero === seleccio.genere) || personatges[0];
 
   // Ciutat principal amb fallback
@@ -111,10 +111,10 @@ export async function generarLlibre(seleccio, bancs) {
     const beatNom = beats[(numCap - 1) % beats.length];
     const escenes = [];
 
-    // Lògica rotació ciutats:
+    // ROTACIÓ CIUTATS V9.4:
     // Cap 1-6: Ciutat Principal
     // Cap 7-12: Ciutat Principal 2 si existeix
-    // Cap 13+: Ciutats Extra
+    // Cap 13+: Ciutats Extra en rotació
     let ciutatActual = configBase.ciutat;
     let subtubsActuals = configBase.subtubsActius;
 
@@ -131,7 +131,7 @@ export async function generarLlibre(seleccio, bancs) {
       // Triar subtub aleatori si n'hi ha
       const subtub = pickSubtub(subtubsActuals, hist);
       const configEscena = {
-      ...configBase,
+     ...configBase,
         ciutat: ciutatActual,
         subtubActual: subtub? subtub.nom : null
       };
@@ -189,7 +189,7 @@ export async function generarLectura(seleccio, bancs, numEscenes = 1) {
   const ubicacions = BANCS.banco_ubicacion || [{ciutat:'Girona', subtubs:[]}];
 
   const persBanc = seleccio.personatgeId
-  ? personatges.find(p => p.id === seleccio.personatgeId)
+ ? personatges.find(p => p.id === seleccio.personatgeId)
     : personatges.find(p => p.genero === seleccio.genere) || personatges[0];
 
   const ciutatPrincipal = seleccio.ciutatPrincipal || 'Girona';
@@ -225,7 +225,7 @@ export async function generarLectura(seleccio, bancs, numEscenes = 1) {
 
     const subtub = pickSubtub(configBase.subtubsActius, hist);
     const configEscena = {
-    ...configBase,
+   ...configBase,
       subtubActual: subtub? subtub.nom : null
     };
 
