@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0d0f12">
 <title>Guio-Pro-Policial</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 <style>
 :root{--bg:#0d0f12;--bg-panel:#1a1d22;--text:#e6e7e9;--text-muted:#8a8f96;--accent:#00bcd4;--border:#2a2e33;--btn:#262a31}
 body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
@@ -42,6 +42,7 @@ textarea{font-family:inherit}
 .subtub-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;margin-bottom:6px}
 .subtub-item input{width:18px;height:18px;margin:0}
 .subtub-item label{flex:1;font-size:14px}
+.subtub-counter{font-size:12px;color:var(--accent);margin-left:8px}
 </style>
 </head>
 <body>
@@ -107,9 +108,19 @@ textarea{font-family:inherit}
     <div class="screen-header"><button onclick="closeScreen('ubicacio')">← Tornar</button><h2 id="ciutat-title">Ciutat</h2></div>
     <div class="screen-content">
       <button class="opt-btn" onclick="selectCiutatPrincipal()">Marcar com a Ciutat Principal</button>
+      <button class="opt-btn" onclick="openCiutatPrincipal2()">Marcar com a Ciutat Principal 2</button>
       <button class="opt-btn" id="btn-toggle-extra" onclick="toggleCiutatExtra()">Afegir a Ciutats Extra</button>
-      <h4 style="color:var(--text-muted);margin:16px 0 8px">Llocs secundaris - marca 2-3</h4>
+      <h4 style="color:var(--text-muted);margin:16px 0 8px">Llocs secundaris - Max 3</h4>
       <div id="subtubs-list"></div>
+    </div>
+  </section>
+
+  <!-- SCREEN CIUTAT PRINCIPAL 2 - NOVA -->
+  <section id="screen-ciutat-2" class="screen">
+    <div class="screen-header"><button onclick="closeScreen('ubicacio-detall')">← Tornar</button><h2 id="ciutat-2-title">Ciutat Principal 2</h2></div>
+    <div class="screen-content">
+      <h4 style="color:var(--text-muted);margin:16px 0 8px">Llocs secundaris - Max 3</h4>
+      <div id="subtubs-list-2"></div>
     </div>
   </section>
 
@@ -170,6 +181,7 @@ const baseURL = new URL('./', import.meta.url).href;
 let BANCS = {};
 let llibreGenerat = null;
 let ciutatTemp = null;
+let modeCiutat2 = false;
 
 // 1. Carregar bancs
 try {
@@ -192,7 +204,7 @@ try {
   };
 }
 
-// 2. Estat global amb subtubs
+// 2. Estat global V9.2
 window.seleccio = {
   titol:'',
   genere:'policiac',
@@ -201,8 +213,10 @@ window.seleccio = {
   ritme:'Novel·la',
   pov:'1 Protagonista',
   ciutatPrincipal:null,
+  ciutatPrincipal2:null,
   ciutatsExtra:[],
   subtubsPrincipal:[],
+  subtubsPrincipal2:[],
   subtubsExtra:{},
   sinopsis:'',
   personatgeId:null,
@@ -245,56 +259,78 @@ window.saveSinopsis = ()=>{
   closeScreen();
 }
 
-// 6. Ubicació 2 nivells + Subtubs
+// 6. Ubicació 2 nivells + Subtubs V9.2
 function renderUbicacioList(){
   const list = document.getElementById('ubicacio-list');
   const ciutats = BANCS.banco_ubicacion || [];
   list.innerHTML = ciutats.map(c=>{
-    const nSubtubs = seleccio.subtubsPrincipal.length || seleccio.subtubsExtra[c.ciutat]?.length || 0;
-    const label = c.ciutat === seleccio.ciutatPrincipal? `${c.ciutat} (Principal)` : 
-                  seleccio.ciutatsExtra.includes(c.ciutat)? `${c.ciutat} (Extra)` : c.ciutat;
+    let tags = [];
+    if(c.ciutat === seleccio.ciutatPrincipal) tags.push('Principal');
+    if(c.ciutat === seleccio.ciutatPrincipal2) tags.push('Principal 2');
+    if(seleccio.ciutatsExtra.includes(c.ciutat)) tags.push('Extra');
+    const nSubtubs = c.ciutat === seleccio.ciutatPrincipal? seleccio.subtubsPrincipal.length :
+                     c.ciutat === seleccio.ciutatPrincipal2? seleccio.subtubsPrincipal2.length :
+                     seleccio.subtubsExtra[c.ciutat]?.length || 0;
+    const label = tags.length > 0? `${c.ciutat} (${tags.join(', ')})` : c.ciutat;
     return `<button class="opt-btn" onclick="openCiutatDetall('${c.ciutat}')">${label} ${nSubtubs?`(${nSubtubs} llocs)` : ''}</button>`;
   }).join('');
 }
 
 window.openCiutatDetall = ciutat=>{
   ciutatTemp = ciutat;
+  modeCiutat2 = false;
   document.getElementById('ciutat-title').textContent = ciutat;
   const isExtra = seleccio.ciutatsExtra.includes(ciutat);
   document.getElementById('btn-toggle-extra').textContent = isExtra? 'Eliminar de Ciutats Extra' : 'Afegir a Ciutats Extra';
-  renderSubtubsList(ciutat);
+  renderSubtubsList(ciutat, false);
   openScreen('ubicacio-detall');
 }
 
-function renderSubtubsList(ciutat){
-  const container = document.getElementById('subtubs-list');
+window.openCiutatPrincipal2 = ()=>{
+  modeCiutat2 = true;
+  document.getElementById('ciutat-2-title').textContent = ciutatTemp + ' - Principal 2';
+  renderSubtubsList(ciutatTemp, true);
+  openScreen('ciutat-2');
+}
+
+function renderSubtubsList(ciutat, isCiutat2){
+  const containerId = isCiutat2? 'subtubs-list-2' : 'subtubs-list';
+  const container = document.getElementById(containerId);
   const ubi = BANCS.banco_ubicacion.find(u => u.ciutat === ciutat);
   if(!ubi ||!ubi.subtubs || ubi.subtubs.length === 0){
     container.innerHTML = `<p style="color:var(--text-muted);font-size:13px">Sense llocs secundaris per ${ciutat}</p>`;
     return;
   }
-  
-  const seleccionats = ciutat === seleccio.ciutatPrincipal? seleccio.subtubsPrincipal : (seleccio.subtubsExtra[ciutat] || []);
-  
+
+  let seleccionats;
+  if(isCiutat2) seleccionats = seleccio.subtubsPrincipal2;
+  else if(ciutat === seleccio.ciutatPrincipal) seleccionats = seleccio.subtubsPrincipal;
+  else seleccionats = seleccio.subtubsExtra[ciutat] || [];
+
   container.innerHTML = ubi.subtubs.map(s=>{
     const checked = seleccionats.includes(s.nom)? 'checked' : '';
     return `<div class="subtub-item">
-      <input type="checkbox" id="sub-${s.nom}" ${checked} onchange="toggleSubtub('${ciutat}','${s.nom}')">
-      <label for="sub-${s.nom}">${s.nom}</label>
+      <input type="checkbox" id="sub-${isCiutat2?'2-':''}${s.nom}" ${checked} onchange="toggleSubtub('${ciutat}','${s.nom}',${isCiutat2})">
+      <label for="sub-${isCiutat2?'2-':''}${s.nom}">${s.nom}</label>
     </div>`;
   }).join('');
 }
 
-window.toggleSubtub = (ciutat, subtub)=>{
-  if(ciutat === seleccio.ciutatPrincipal){
-    const idx = seleccio.subtubsPrincipal.indexOf(subtub);
-    if(idx > -1) seleccio.subtubsPrincipal.splice(idx,1);
-    else seleccio.subtubsPrincipal.push(subtub);
-  } else {
+window.toggleSubtub = (ciutat, subtub, isCiutat2)=>{
+  let seleccionats;
+  if(isCiutat2) seleccionats = seleccio.subtubsPrincipal2;
+  else if(ciutat === seleccio.ciutatPrincipal) seleccionats = seleccio.subtubsPrincipal;
+  else {
     if(!seleccio.subtubsExtra[ciutat]) seleccio.subtubsExtra[ciutat] = [];
-    const idx = seleccio.subtubsExtra[ciutat].indexOf(subtub);
-    if(idx > -1) seleccio.subtubsExtra[ciutat].splice(idx,1);
-    else seleccio.subtubsExtra[ciutat].push(subtub);
+    seleccionats = seleccio.subtubsExtra[ciutat];
+  }
+
+  const idx = seleccionats.indexOf(subtub);
+  if(idx > -1) {
+    seleccionats.splice(idx,1);
+  } else {
+    if(seleccionats.length >= 3) seleccionats.shift(); // Max 3: treu el primer
+    seleccionats.push(subtub);
   }
   renderUbicacioList();
 }
