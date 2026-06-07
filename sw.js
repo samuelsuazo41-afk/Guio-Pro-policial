@@ -1,4 +1,4 @@
-const CACHE_NAME = 'guio-pro-policial-v7';
+const CACHE_NAME = 'guio-pro-policial-v8';
 const SHELL = [
   './',
   './index.html',
