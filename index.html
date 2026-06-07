@@ -1,1 +1,343 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f12">
+<title>Lec-Flix Guio-Pro-Policial</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css?v=13">
+<style>
+:root{--bg:#0d0f12;--bg-panel:#1a1d22;--text:#e6e7e9;--text-muted:#8a8f96;--accent:#00bcd4;--border:#2a2e33;--btn:#262a31}
+body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
+header{text-align:center;padding:16px;border-bottom:1px solid var(--border)}
+header h1{margin:0;font-size:20px} header p{margin:4px 0 0;font-size:12px;color:var(--text-muted)}
+main{padding:12px;max-width:720px;margin:0 auto}
+input{width:100%;padding:12px;border:1px solid var(--border);background:var(--bg-panel);color:var(--text);border-radius:6px;margin-bottom:12px;font-size:15px}
+.tabs-container{display:grid;gap:8px;margin-bottom:16px}
+.tab-btn{padding:14px;background:var(--btn);border:1px solid var(--border);border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.tab-btn:hover{background:#2e333b}
+.botons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.botons button{padding:14px;border:none;border-radius:6px;background:var(--accent);color:#000;font-weight:600;cursor:pointer;font-size:14px}
+#resultat{min-height:60px;padding:12px;background:var(--bg-panel);border-radius:6px;border:1px solid var(--border)}
+.screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:100;overflow-y:auto}
+.screen.active{display:block}
+.screen-header{position:sticky;top:0;background:var(--bg);padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.screen-header button{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer}
+.screen-header h2{margin:0;font-size:16px;flex:1;text-align:center}
+.screen-content{padding:16px}
+.opt-btn{width:100%;padding:14px;margin-bottom:8px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;text-align:left;font-size:14px}
+.opt-btn:hover{background:#23272e}
+.opt-btn small{display:block;color:var(--text-muted);font-size:12px;margin-top:4px}
+.lectura-nav{position:sticky;bottom:0;background:var(--bg);padding:12px;border-top:1px solid var(--border);display:flex;gap:8px}
+.lectura-nav button{flex:1;padding:12px;border:none;border-radius:6px;background:var(--btn);color:var(--text);cursor:pointer}
+.toc-hidden{display:none}
+#toc-container{background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;margin:12px;padding:12px;max-height:40vh;overflow-y:auto}
+.toc-item{cursor:pointer;padding:12px 0;border-bottom:1px solid var(--border)}
+.toc-item:hover{background:#23272e}
+.toc-capitol{font-weight:600;color:var(--text)}
+.toc-resumen{font-size:13px;color:var(--text-muted);padding:4px 0 0 20px;line-height:1.4}
+.toc-escenes{font-size:12px;color:var(--accent);padding:2px 0 0 20px}
+textarea{font-family:inherit}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lec-Flix</h1>
+  <p>Guio-Pro-Policial</p>
+</header>
 
+<main>
+  <!-- PANTALLA 1: MENÚ PRINCIPAL -->
+  <section id="menu">
+    <input id="input-titol" type="text" placeholder="Títol del llibre..." onchange="seleccio.titol = this.value">
+    <div class="tabs-container">
+      <div class="tab-btn" onclick="openScreen('genere')">GÈNERE <span id="genere-label">POLICIAL</span></div>
+      <div class="tab-btn" onclick="openScreen('sinopsis')">SINOPSI <span id="sinopsis-label">▼</span></div>
+      <div class="tab-btn" onclick="openScreen('ubicacio')">UBICACIÓ <span id="ubicacio-label">▼</span></div>
+      <div class="tab-btn" onclick="openScreen('estructura')">ESTRUCTURA <span id="estructura-label">Save the Cat</span></div>
+      <div class="tab-btn" onclick="openScreen('ritme')">RITME <span id="ritme-label">Novel·la</span></div>
+      <div class="tab-btn" onclick="openScreen('pov')">POV <span id="pov-label">1 Protagonista</span></div>
+    </div>
+    <div class="botons">
+      <button id="btn-preview">Preview</button>
+      <button id="btn-generar">Generar Text</button>
+      <button id="btn-exportar">Exportar.txt</button>
+    </div>
+    <section id="resultat">
+      <p style="color:var(--text-muted);text-align:center">Selecciona Ubicació + Ritme per començar</p>
+    </section>
+  </section>
+
+  <!-- SCREEN GÈNERE -->
+  <section id="screen-genere" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>GÈNERE</h2></div>
+    <div class="screen-content">
+      <h3 style="color:var(--accent);padding:8px 0">Policial</h3>
+      <button class="opt-btn" onclick="selectSubgenere('thriller')">Thriller Policial<br><small>Acció, ritme ràpid</small></button>
+      <button class="opt-btn" onclick="selectSubgenere('psicologico')">Psicològic<br><small>Gat i ratolí mental</small></button>
+      <button class="opt-btn" onclick="selectSubgenere('noir')">Noir<br><small>Foscor, corrupció</small></button>
+      <button class="opt-btn" onclick="selectSubgenere('procedimental')">Procedimental<br><small>Forense, feina de policia</small></button>
+    </div>
+  </section>
+
+  <!-- SCREEN SINOPSI -->
+  <section id="screen-sinopsis" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>SINOPSI</h2></div>
+    <div class="screen-content">
+      <textarea id="input-sinopsis" placeholder="Ex: Thriller psicològic. Un detectiu obsessionat persegueix un assassí que imita crims a Barcelona."></textarea>
+      <button class="opt-btn" onclick="saveSinopsis()">Guardar Sinopsi</button>
+    </div>
+  </section>
+
+  <!-- SCREEN UBICACIÓ NIVELL 1 -->
+  <section id="screen-ubicacio" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>UBICACIÓ</h2></div>
+    <div class="screen-content">
+      <h3 style="color:var(--accent);padding:8px 0">Catalunya</h3>
+      <div id="ubicacio-list"></div>
+    </div>
+  </section>
+
+  <!-- SCREEN UBICACIÓ NIVELL 2 -->
+  <section id="screen-ubicacio-detall" class="screen">
+    <div class="screen-header"><button onclick="closeScreen('ubicacio')">← Tornar</button><h2 id="ciutat-title">Ciutat</h2></div>
+    <div class="screen-content">
+      <button class="opt-btn" onclick="selectCiutatPrincipal()">Marcar com a Ciutat Principal</button>
+      <button class="opt-btn" id="btn-toggle-extra" onclick="toggleCiutatExtra()">Afegir a Ciutats Extra</button>
+      <h4 style="color:var(--text-muted);margin:16px 0 8px">Subtubs</h4>
+      <div id="subtubs-list"><p style="color:var(--text-muted);font-size:13px">Pendents del nou fitxer d'ubicació</p></div>
+    </div>
+  </section>
+
+  <!-- SCREEN ESTRUCTURA -->
+  <section id="screen-estructura" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>ESTRUCTURA</h2></div>
+    <div class="screen-content">
+      <button class="opt-btn" onclick="selectEstructura('3 Actes')">3 Actes Clàssic</button>
+      <button class="opt-btn" onclick="selectEstructura('Save the Cat')">Save the Cat</button>
+      <button class="opt-btn" onclick="selectEstructura('No Lineal')">No Lineal</button>
+    </div>
+  </section>
+
+  <!-- SCREEN RITME -->
+  <section id="screen-ritme" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>RITME</h2></div>
+    <div class="screen-content">
+      <button class="opt-btn" onclick="selectRitme('Relat Curt')">Relat Curt ~5k<br><small>3-4 capítols</small></button>
+      <button class="opt-btn" onclick="selectRitme('Novel·la')">Novel·la 60k<br><small>17 capítols</small></button>
+      <button class="opt-btn" onclick="selectRitme('Èpic')">Èpic 100k<br><small>25 capítols</small></button>
+    </div>
+  </section>
+
+  <!-- SCREEN POV -->
+  <section id="screen-pov" class="screen">
+    <div class="screen-header"><button onclick="closeScreen()">← Tornar</button><h2>POV</h2></div>
+    <div class="screen-content">
+      <button class="opt-btn" onclick="selectPov('1 Protagonista')">1 Protagonista</button>
+      <button class="opt-btn" onclick="selectPov('3 POV Rotatius')">3 POV Rotatius</button>
+      <button class="opt-btn" onclick="selectPov('Omniscient')">Narrador Omniscient</button>
+    </div>
+  </section>
+
+  <!-- SCREEN LECTURA -->
+  <section id="screen-lectura" class="screen">
+    <div class="screen-header">
+      <button onclick="closeScreen('menu')">← Menú</button>
+      <h2>LECTURA</h2>
+      <button id="btn-toc-toggle">Índex</button>
+    </div>
+    <div id="toc-container" class="toc-hidden"><div id="toc-content"></div></div>
+    <div class="screen-content" id="lectura-content"></div>
+    <div class="lectura-nav">
+      <button id="btn-prev-seccio">← Anterior</button>
+      <button id="btn-next-seccio">Següent →</button>
+    </div>
+  </section>
+
+  <!-- SCREEN TOC -->
+  <section id="screen-toc" class="screen">
+    <div class="screen-header"><button onclick="closeScreen('lectura')">← Tornar a Lectura</button><h2>ÍNDEX</h2></div>
+    <div class="screen-content" id="toc-content"></div>
+  </section>
+</main>
+
+<script type="module">
+const baseURL = new URL('./', import.meta.url).href;
+let BANCS = {};
+let llibreGenerat = null;
+let ciutatTemp = null;
+
+// 1. Carregar bancs
+try {
+  const mod = await import(baseURL + 'data/loadBancs.js?v=' + Date.now());
+  BANCS = await mod.cargarBancs();
+  console.log('📚 Bancs carregats:', Object.keys(BANCS));
+} catch (e) {
+  console.warn('Fallback bancs', e);
+  BANCS = {
+    banco_ubicacion: [
+      {ciutat:'Barcelona', banco_variables:{so:['silenci'], olor:['humitat']}},
+      {ciutat:'Girona', banco_variables:{so:['vent'], olor:['pi']}},
+      {ciutat:'Tarragona', banco_variables:{so:['mar'], olor:['sal']}}
+    ],
+    banco_lectura: [{tipus:'obertura', genero:'policiac', texto_base:'{nom} va obrir els ulls a {ciutat}.'}],
+    banco_personatge: [{id:'p1', genero:'policiac', banco_variables:{nom:['Àlex'], tic:['somriu']}}],
+    banco_escenarios: [{nom:'Carrer', ciutat:'Barcelona', genero:['policiac']}],
+    banco_ecenes: [{genero:'policiac', texto_base:'{nom} caminava per {ciutat} amb {tic}.'}],
+    banco_olors:[], banco_sons:[], banco_emocions:[]
+  };
+}
+
+// 2. Estat global
+window.seleccio = {
+  titol:'',
+  genere:'policiac',
+  subgenere:'thriller',
+  estructura:'Save the Cat',
+  ritme:'Novel·la',
+  pov:'1 Protagonista',
+  ciutatPrincipal:null,
+  ciutatsExtra:[],
+  sinopsis:'',
+  personatgeId:null,
+  mon:null,
+  escenariId:null
+};
+
+// 3. Navegació
+window.openScreen = function(screenName){
+  document.getElementById('menu').style.display='none';
+  document.getElementById('resultat').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const screen = document.getElementById('screen-'+screenName);
+  if(screen) screen.classList.add('active');
+  if(screenName==='sinopsis') document.getElementById('input-sinopsis').value = seleccio.sinopsis || '';
+  if(screenName==='ubicacio') renderUbicacioList();
+};
+
+window.closeScreen = function(target='menu'){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  if(target==='lectura'){
+    document.getElementById('menu').style.display='none';
+    document.getElementById('screen-lectura').classList.add('active');
+  } else {
+    document.getElementById('menu').style.display='block';
+    document.getElementById('resultat').style.display='block';
+  }
+};
+
+// 4. Selectors bàsics
+window.selectSubgenere = s=>{seleccio.subgenere=s; document.getElementById('genere-label').textContent='POLICIAL - '+s.toUpperCase(); closeScreen();}
+window.selectEstructura = e=>{seleccio.estructura=e; document.getElementById('estructura-label').textContent=e; closeScreen();}
+window.selectRitme = r=>{seleccio.ritme=r; document.getElementById('ritme-label').textContent=r; closeScreen();}
+window.selectPov = p=>{seleccio.pov=p; document.getElementById('pov-label').textContent=p; closeScreen();}
+
+// 5. Sinopsi
+window.saveSinopsis = ()=>{
+  seleccio.sinopsis = document.getElementById('input-sinopsis').value.trim();
+  document.getElementById('sinopsis-label').textContent = seleccio.sinopsis? '✓' : '▼';
+  closeScreen();
+}
+
+// 6. Ubicació 2 nivells
+function renderUbicacioList(){
+  const list = document.getElementById('ubicacio-list');
+  const ciutats = BANCS.banco_ubicacion || [];
+  list.innerHTML = ciutats.map(c=>`<button class="opt-btn" onclick="openCiutatDetall('${c.ciutat}')">${c.ciutat}</button>`).join('');
+}
+
+window.openCiutatDetall = ciutat=>{
+  ciutatTemp = ciutat;
+  document.getElementById('ciutat-title').textContent = ciutat;
+  const isExtra = seleccio.ciutatsExtra.includes(ciutat);
+  document.getElementById('btn-toggle-extra').textContent = isExtra? 'Eliminar de Ciutats Extra' : 'Afegir a Ciutats Extra';
+  openScreen('ubicacio-detall');
+}
+
+window.selectCiutatPrincipal = ()=>{
+  seleccio.ciutatPrincipal = ciutatTemp;
+  seleccio.mon = ciutatTemp;
+  document.getElementById('ubicacio-label').textContent = ciutatTemp;
+  closeScreen('ubicacio');
+}
+
+window.toggleCiutatExtra = ()=>{
+  const idx = seleccio.ciutatsExtra.indexOf(ciutatTemp);
+  if(idx>-1){seleccio.ciutatsExtra.splice(idx,1)}else{seleccio.ciutatsExtra.push(ciutatTemp)}
+  document.getElementById('btn-toggle-extra').textContent = seleccio.ciutatsExtra.includes(ciutatTemp)? 'Eliminar de Ciutats Extra' : 'Afegir a Ciutats Extra';
+}
+
+// 7. Botó Generar
+document.getElementById('btn-generar').onclick = async ()=>{
+  document.getElementById('resultat').innerHTML = `<p style="text-align:center">Generant ${seleccio.ritme}...</p>`;
+  try{
+    const mod = await import(baseURL + 'main.js?v=' + Date.now());
+    llibreGenerat = await mod.generarLlibre(seleccio, BANCS);
+    mostrarLlibre(llibreGenerat);
+  }catch(err){
+    console.error(err);
+    document.getElementById('resultat').innerHTML = `<p style="color:red;text-align:center">Error: ${err.message}</p>`;
+  }
+};
+
+// 8. Preview + Exportar
+document.getElementById('btn-preview').onclick = ()=>{
+  if(!llibreGenerat) return alert('Primer prem Generar Text');
+  mostrarLlibre(llibreGenerat);
+};
+
+document.getElementById('btn-exportar').onclick = ()=>{
+  if(!llibreGenerat) return alert('Primer prem Generar Text');
+  const text = llibreGenerat.capitols.map(c=>`CAPÍTOL ${c.num} - ${c.beat}\n\n`+c.escenes.map(e=>`${e.titol}\n${e.text}\n\n`).join('')).join('\n---\n\n');
+  const blob = new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=(seleccio.titol||'text')+'.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+};
+
+// 9. Mostrar llibre
+function mostrarLlibre(llibre){
+  const div = document.getElementById('lectura-content');
+  div.innerHTML = '';
+  llibre.capitols.forEach(cap=>{
+    cap.escenes.forEach(esc=>{
+      const el = document.createElement('div');
+      el.innerHTML = `<h3>${esc.titol}</h3><p style="line-height:1.8">${esc.text}</p><hr style="margin:24px 0;border:none;border-top:1px solid var(--border)">`;
+      div.appendChild(el);
+    });
+  });
+  document.getElementById('resultat').innerHTML = `<p style="text-align:center;color:var(--accent)">Generat: ${llibre.metadata.paraulesAprox} paraules - ${llibre.metadata.nCapitols} capítols</p>`;
+  document.getElementById('menu').style.display='none';
+  document.getElementById('screen-lectura').classList.add('active');
+}
+
+// 10. TOC
+function renderTOC(llibre){
+  const container = document.getElementById('toc-content');
+  container.innerHTML = '';
+  llibre.capitols.forEach(cap=>{
+    const primera = cap.escenes.find(e=>e.text && e.text.trim());
+    const resumen = primera? primera.text.trim().split(/\s+/).slice(0,20).join(' ')+'...' : 'Sense contingut';
+    const div = document.createElement('div');
+    div.className='toc-item';
+    div.innerHTML = `<div class="toc-capitol">Capítol ${cap.num} - ${cap.beat}</div><div class="toc-resumen">${resumen}</div><div class="toc-escenes">${cap.escenes.length-1} escenes</div>`;
+    div.onclick = ()=>{
+      closeScreen('lectura');
+      setTimeout(()=>{const targets=document.querySelectorAll('#lectura-content h3'); if(targets[cap.num-1]) targets[cap.num-1].scrollIntoView({behavior:'smooth'})},100);
+    };
+    container.appendChild(div);
+  });
+}
+
+document.getElementById('btn-toc-toggle').onclick = ()=>{
+  if(!llibreGenerat) return alert('Primer prem Generar Text');
+  renderTOC(llibreGenerat);
+  closeScreen('toc');
+};
+
+// 11. Service Worker
+if('serviceWorker' in navigator) navigator.serviceWorker.register(baseURL+'sw.js');
+</script>
+</body>
+        </html>
