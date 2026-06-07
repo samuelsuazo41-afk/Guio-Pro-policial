@@ -321,8 +321,9 @@ main {
   padding: 2px 0 0 20px;
 }
 
-/* SUBTUBS - NOU */
-#subtubs-list {
+/* SUBTUBS - V9.2 */
+#subtubs-list,
+#subtubs-list-2 {
   margin-top: 8px;
 }
 
